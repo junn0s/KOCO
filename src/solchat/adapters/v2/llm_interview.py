@@ -3,6 +3,7 @@ import logging
 from openai import OpenAI
 from dotenv import load_dotenv
 from src.solchat.config import settings
+from langsmith import traceable
 from src.solchat.core.llm_key_manager import APIKeyManager
 from src.solchat.core.utils.stream_utils import wrap_stream_response
 
@@ -16,6 +17,7 @@ client = OpenAI(
     base_url="https://api.upstage.ai/v1"
 )
 
+@traceable(name="interview-llm", tags=["interview", "llm"])
 async def call_agent(prompt: str, stream: bool = True, max_tokens: int = None, session_id: str = None):
     max_tokens = max_tokens or settings.max_tokens_chat  # fallback
     try:
@@ -33,7 +35,7 @@ async def call_agent(prompt: str, stream: bool = True, max_tokens: int = None, s
         )
 
         if stream:
-            return wrap_stream_response(response, session_id=session_id)
+            return wrap_stream_response(response, session_id=session_id, prompt=prompt)
         else:
             return response.choices[0].message.content
 

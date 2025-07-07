@@ -1,10 +1,14 @@
 import asyncio
 import re
 from typing import AsyncGenerator
+from langsmith.client import Client
 
-async def wrap_stream_response(response, session_id: str = None) -> AsyncGenerator[str, None]:
+client = Client()
+
+async def wrap_stream_response(response, session_id: str = None, prompt: str = "") -> AsyncGenerator[str, None]:
     buffer = ""
     line_buf = ""
+    full_output = ""
 
     try:
         for chunk in response:
@@ -13,6 +17,7 @@ async def wrap_stream_response(response, session_id: str = None) -> AsyncGenerat
                 content = delta.content
                 buffer += content
                 line_buf += content
+                full_output += content
 
                 # 줄 단위로 먼저 처리
                 while "\n" in line_buf:
@@ -37,6 +42,15 @@ async def wrap_stream_response(response, session_id: str = None) -> AsyncGenerat
                     yield "data:  \n\n"
                 else:
                     yield f"data: {token}\n\n"
+
+        client.create_run(
+            name="feedback-stream-final",
+            run_type="llm",  # ✅ 반드시 추가
+            inputs={"prompt": prompt},
+            outputs={"output": full_output},
+            tags=["feedback", "streamed"],
+            metadata={"session_id": session_id or "unknown"}
+        )
 
     except Exception as e:
         yield f"data: [ERROR] {str(e)}\n\n"

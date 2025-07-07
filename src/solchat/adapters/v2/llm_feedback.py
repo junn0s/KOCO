@@ -2,7 +2,8 @@ import os
 import logging
 from openai import OpenAI
 from dotenv import load_dotenv
-from src.solchat.config import settings  # ✅ 설정 import
+from src.solchat.config import settings  # ✅ 설정 
+from langsmith import traceable
 from src.solchat.core.llm_key_manager import APIKeyManager
 from src.solchat.core.utils.stream_utils import wrap_stream_response
 
@@ -11,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 solar_key_manager = APIKeyManager(os.getenv("SOLAR_API_KEYS").split(","))
 
+
+@traceable(name="feedback-llm", tags=["feedback", "llm"])
 async def call_feedback_llm(prompt: str, stream: bool = True, max_tokens: int = None, session_id: str = None):
     max_tokens = max_tokens or settings.max_tokens_chat  # fallback
     try:
@@ -28,7 +31,7 @@ async def call_feedback_llm(prompt: str, stream: bool = True, max_tokens: int = 
         )
 
         if stream:
-            return wrap_stream_response(response, session_id=session_id)
+            return wrap_stream_response(response, session_id=session_id, prompt=prompt)
         else:
             return response.choices[0].message.content
 
