@@ -44,7 +44,7 @@ async def wrap_stream_response(response, session_id: str = None, prompt: str = "
                     yield f"data: {token}\n\n"
 
         client.create_run(
-            name="feedback-stream-final",
+            name="Streamed Response",
             run_type="llm",  # ✅ 반드시 추가
             inputs={"prompt": prompt},
             outputs={"output": full_output},
