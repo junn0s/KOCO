@@ -1,7 +1,7 @@
 import gradio as gr
 import asyncio
 import httpx
-import uuid
+import uuid, random
 
 with gr.Blocks() as demo:
     gr.Markdown("## 💬 챗봇 테스트 Gradio")
@@ -55,7 +55,7 @@ with gr.Blocks() as demo:
         title, description, input_desc, output_desc, input_ex, output_ex, language, code, mode
     ):
         output = ""
-        session_id = str(uuid.uuid4())
+        session_id = random.randint(100000, 999999)
 
         payload = {
             "sessionId": session_id,
@@ -113,10 +113,10 @@ with gr.Blocks() as demo:
         # 요약 생성 조건 확인
         summary_to_use = prev_summary
         if count >= 10:
-            summary_payload = {
+            summary_payload = [{
                 "sessionId": session_id,
                 "messages": buffer
-            }
+            }]
             async with httpx.AsyncClient(timeout=30.0) as client:
                 resp = await client.post("http://localhost:8000/api/ai/v2/summary", json=summary_payload)
                 summary_to_use = resp.json().get("summary", "")

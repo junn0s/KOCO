@@ -17,19 +17,26 @@ async def wrap_stream_response(response, session_id: str = None) -> AsyncGenerat
                 # 줄 단위로 먼저 처리
                 while "\n" in line_buf:
                     line, line_buf = line_buf.split("\n", 1)
-                    tokens = re.findall(r"[^\s]+", line)
+                    # 공백과 단어를 분리하여 모두 토큰화
+                    tokens = re.findall(r"\S+|\s", line)
                     for token in tokens:
-                        yield f"data: {token}\n\n"
-                    # 줄바꿈 시 공백 한 칸으로 명시적 표현
-                    yield "data:  \n\n"
+                        if token == " ":
+                            yield "data: \n\n"  # 띄어쓰기 명시
+                        else:
+                            yield f"data: {token}\n\n"
+                    # 줄바꿈 명시
+                    yield "data: \\n\n\n"
 
                 await asyncio.sleep(0)
 
         # 남은 줄 처리
         if line_buf.strip():
-            tokens = re.findall(r"[^\s]+", line_buf)
+            tokens = re.findall(r"\S+|\s", line_buf)
             for token in tokens:
-                yield f"data: {token}\n\n"
+                if token == " ":
+                    yield "data:  \n\n"
+                else:
+                    yield f"data: {token}\n\n"
 
     except Exception as e:
         yield f"data: [ERROR] {str(e)}\n\n"
