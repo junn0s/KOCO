@@ -17,10 +17,11 @@ async def wrap_stream_response(response, session_id: str = None, prompt: str = "
                 line_buf += content
                 full_output += content
 
+                yield f"data: [DEBUG] line_buf: {repr(line_buf)}\n\n"
+
                 # 줄 단위로 먼저 처리
                 while "\n" in line_buf:
                     line, line_buf = line_buf.split("\n", 1)
-                    print(f"[완성된 줄] {line}")
                     # 공백과 단어를 분리하여 모두 토큰화
                     tokens = re.findall(r"\S+|\s", line)
                     for token in tokens:
