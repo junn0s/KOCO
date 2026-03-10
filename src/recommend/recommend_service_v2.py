@@ -84,7 +84,7 @@ def recommend_for_user(history: List[int]=None) -> List[List[int]]:
             # BM25+Dense 앙상블
             ensemble = EnsembleRetriever(
                 retrievers=[bm25_tags, bm25_text, dense],
-                weights=[0.5, 0.1, 0.4]
+                weights=[0.3, 0.3, 0.4]
             )
 
             # 최종 1개 추천
